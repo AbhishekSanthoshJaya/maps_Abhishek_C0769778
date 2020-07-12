@@ -105,12 +105,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 setMarker(latLng);
             }
             private void setMarker(LatLng latLng) {
-                MarkerOptions option = getMarkerOption(latLng);
-                Marker marker = mMap.addMarker(option);
+                MarkerOptions options = getMarkerOption(latLng);
                 // check if there are already the same number of markers, we clear the map.
                 if (markers.size() == POLYGON_SIDES)
                     clearMap();
-                markers.add(mMap.addMarker(option));
+                markers.add(mMap.addMarker(options));
                 if (markers.size() == POLYGON_SIDES)
                     drawShape();
             }
