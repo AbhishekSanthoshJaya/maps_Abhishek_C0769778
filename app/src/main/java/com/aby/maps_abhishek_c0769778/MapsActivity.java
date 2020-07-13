@@ -49,7 +49,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private static final int REQUEST_CODE = 1;
     private static final int POLYGON_SIDES = 4;
-    Polyline line;
     Polygon shape;
     List<Marker> markersList = new ArrayList<>();
     List<Marker> distanceMarkers = new ArrayList<>();
@@ -57,7 +56,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     List<Marker> cityMarkers = new ArrayList<>();
     ArrayList<Character> letterList = new ArrayList<>();
-    HashMap<LatLng, Character> markerLabelMap = new HashMap<>();
 
     LocationManager locationManager;
     LocationListener locationListener;
@@ -74,7 +72,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public BitmapDescriptor displayText(String text) {
-
         Paint textPaint = new Paint();
 
         textPaint.setTextSize(48);
@@ -85,7 +82,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         Bitmap image = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(image);
-
         canvas.translate(0, height);
 
         canvas.drawText(text, 0, 0, textPaint);
@@ -321,7 +317,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             cityMarkers.add(letterMarker);
             letterList.add(arr.get(0));
             letterMarker.setTag(arr.get(0));
-            //markerLabelMap.put(letterMarker.getPosition(),cityLetters);
         }
 
     //drawing polygon with 4 markers
@@ -337,7 +332,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         Vector<LatLng> sortedLatLong = PointPlotter.convexHull(markersConvex, POLYGON_SIDES);
-
         // get sortedLatLong
         Vector<LatLng> sortedLatLong2 =  new Vector<>();
 
@@ -422,7 +416,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         distanceMarkers.clear();
 
-        for( Marker marker: cityMarkers){
+        for(Marker marker: cityMarkers){
             marker.remove();
         }
         cityMarkers.clear();
@@ -432,7 +426,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onMapLongClick(LatLng latLng) {
-
         if(markersList.size() == 0){
             return;
         }
@@ -475,7 +468,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             deleteDialog
                     .setTitle("Delete?")
                     .setMessage("Would you like to delete the marker in red?")
-
                     .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             // Performing with delete operation
