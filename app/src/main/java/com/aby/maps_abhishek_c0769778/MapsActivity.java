@@ -14,6 +14,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -25,13 +26,14 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnPolygonClickListener, GoogleMap.OnPolylineClickListener{
 
     private GoogleMap mMap;
 
@@ -39,7 +41,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Marker homeMarker;
     Polygon shape;
     private static final int POLYGON_SIDES = 4;
-    List<Marker> markers = new ArrayList();
+    List<Marker> markersList = new ArrayList();
+    List<Polyline> polylinesList = new ArrayList<>();
     private Marker mMarker;
     // location with location manager and listener
     LocationManager locationManager;
@@ -69,6 +72,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
+        mMap.setOnPolylineClickListener(this);
+        mMap.setOnPolygonClickListener(this);
+
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         locationListener = new LocationListener() {
             @Override
@@ -97,39 +103,80 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         else
             startUpdateLocation();
 
-
-        // apply long press gesture
-        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
-            public void onMapLongClick(LatLng latLng) {
+            public void onMapClick(LatLng latLng) {
                 setMarker(latLng);
             }
             private void setMarker(LatLng latLng) {
-                MarkerOptions options = getMarkerOption(latLng);
-                // check if there are already the same number of markers, we clear the map.
-                if (markers.size() == POLYGON_SIDES)
+//                if (markersList.size() < POLYGON_SIDES) {
+                    MarkerOptions options = getMarkerOption(latLng);
+                    Marker marker = mMap.addMarker(options);
+                    drawPolyline(marker);
+                    mMarker = marker;
+                    markersList.add(marker);
+//                }
+                if (markersList.size() == POLYGON_SIDES)
                     clearMap();
-                markers.add(mMap.addMarker(options));
-                if (markers.size() == POLYGON_SIDES)
+                //markersList.add(mMap.addMarker(options));
+                if (markersList.size() == POLYGON_SIDES)
                     drawShape();
+            }
+
+            private void addPolyLines(List<LatLng> latLngList) {
+                for (int i = 0; i < 4; i++) {
+                    if (i == 0) {
+                        drawPolyline(latLngList.get(3), latLngList.get(i));
+                    } else {
+                        drawPolyline(latLngList.get(i), latLngList.get(i - 1));
+                    }
+                }
+            }
+
+            private void drawPolyline(LatLng latLng, LatLng latLng1) {
+                PolylineOptions polylineOptions = new PolylineOptions()
+                        .color(Color.RED)
+                        .width(20)
+                        .add(latLng, latLng1);
+                Polyline polyline = mMap.addPolyline(polylineOptions);
+                polyline.setClickable(true);
+                polylinesList.add(polyline);
+            }
+
+            private void drawPolyline(Marker marker) {
+                if (mMarker != null) {
+                    PolylineOptions polylineOptions = new PolylineOptions()
+                            .color(Color.RED)
+                            .width(20)
+                            .add(marker.getPosition(), mMarker.getPosition());
+                    Polyline polyline = mMap.addPolyline(polylineOptions);
+                    polyline.setClickable(true);
+                    polylinesList.add(polyline);
+                }
             }
 
             private void drawShape() {
                 PolygonOptions options = new PolygonOptions()
-                        .fillColor(Color.GREEN)
-                        .strokeColor(Color.RED)
-                        .strokeWidth(3);
+                        .fillColor(Color.argb(75, 0, 255, 0))
+                        .strokeColor(Color.RED);
 
                 for (int i=0; i<POLYGON_SIDES; i++) {
-                    options.add(markers.get(i).getPosition());
+                    options.add(markersList.get(i).getPosition());
                 }
                 shape = mMap.addPolygon(options);
+                shape.setClickable(true);
             }
 
             private void clearMap() {
-                for (Marker marker: markers)
+                for (Marker marker: markersList)
                 marker.remove();
-                markers.clear();
+
+                for (Polyline polyline : polylinesList) {
+                    polyline.remove();
+                }
+                polylinesList.clear();
+
+                markersList.clear();
                 shape.remove();
                 shape = null;
             }
@@ -213,5 +260,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 0, locationListener);
             }
         }
+    }
+
+    @Override
+    public void onPolygonClick(Polygon polygon) {
+        Toast.makeText(this, "Polygon clicked", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onPolylineClick(Polyline polyline) {
+        Toast.makeText(this, "Polyline clicked", Toast.LENGTH_SHORT).show();
     }
 }
