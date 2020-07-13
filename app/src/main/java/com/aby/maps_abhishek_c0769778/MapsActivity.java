@@ -212,11 +212,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Geocoder geoCoder = new Geocoder(this);
         Address address = null;
 
-        try{
+        try
+        {
             List<Address> matches = geoCoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
             address = (matches.isEmpty() ? null : matches.get(0));
         }
-        catch (IOException e){
+        catch (IOException e)
+        {
             e.printStackTrace();
         }
 
@@ -300,11 +302,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .draggable(false)
                 .icon(createPureTextIcon(cityLetters.toString()))
                 .snippet(snippet);
-        Marker labelMarker = mMap.addMarker(optionsCityLabel);
+        Marker letterMarker = mMap.addMarker(optionsCityLabel);
 
-        cityMarkers.add(labelMarker);
+        cityMarkers.add(letterMarker);
         letterList.add(cityLetters);
-        markerLabelMap.put(labelMarker.getPosition(),cityLetters);
+        markerLabelMap.put(letterMarker.getPosition(),cityLetters);
     }
 
     private void drawShape (){
@@ -349,8 +351,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     minDistance = curDistance;
                     nearestMarker = marker;
                 }
-
             }
+
             if(nearestMarker != null){
                 sortedLatLong2.add(nearestMarker.getPosition());
                 currentMarker = nearestMarker;
@@ -386,8 +388,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             currentPolyline.setClickable(true);
             polylinesList.add(currentPolyline);
         }
-
-
     }
 
     private void clearMap() {
@@ -409,6 +409,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         distanceMarkers.clear();
 
+        for( Marker marker: cityMarkers){
+            marker.remove();
+        }
+        cityMarkers.clear();
     }
 
     @Override
@@ -447,6 +451,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             // Continue with delete operation
                             finalNearestMarker.remove();
                             markersList.remove(finalNearestMarker);
+
+                            letterList.remove(markerLabelMap.get(finalNearestMarker.getPosition()));
+                            markerLabelMap.remove(finalNearestMarker);
 
                             for(Polyline polyline: polylinesList){
                                 polyline.remove();
