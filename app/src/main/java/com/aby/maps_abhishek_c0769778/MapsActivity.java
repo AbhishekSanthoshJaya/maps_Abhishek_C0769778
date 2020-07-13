@@ -73,11 +73,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapFragment.getMapAsync(this);
     }
 
-    public BitmapDescriptor createPureTextIcon(String text) {
+    public BitmapDescriptor displayText(String text) {
 
         Paint textPaint = new Paint();
 
-        textPaint.setTextSize(35);
+        textPaint.setTextSize(48);
+        textPaint.setColor(Color.argb(100, 0, 0, 0));
         float textWidth = textPaint.measureText(text);
         float textHeight = textPaint.getTextSize();
         int width = (int) (textWidth);
@@ -300,7 +301,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         LatLng labelLatLng = new LatLng(latLng.latitude - 0.55,latLng.longitude);
         MarkerOptions optionsCityLabel = new MarkerOptions().position(labelLatLng)
                 .draggable(false)
-                .icon(createPureTextIcon(cityLetters.toString()))
+                .icon(displayText(cityLetters.toString()))
                 .snippet(snippet);
         Marker letterMarker = mMap.addMarker(optionsCityLabel);
 
@@ -312,7 +313,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void drawShape (){
         PolygonOptions options = new PolygonOptions()
                 .fillColor(Color.argb(35, 0, 255, 0))
-                .strokeWidth(0);
+                .strokeColor(Color.RED);
 
         LatLng[] markersConvex = new LatLng[POLYGON_SIDES];
         for (int i = 0; i < POLYGON_SIDES; i++) {
@@ -478,10 +479,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                         }
                     });
-
             AlertDialog dialog = deleteDialog.create();
             dialog.show();
-
         }
     }
 
@@ -513,6 +512,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
+    public void onPolygonClick(Polygon polygon) {
+        LatLngBounds.Builder builder = LatLngBounds.builder();
+        for(LatLng point: polygon.getPoints()){
+            builder.include(point);
+        }
+        LatLng center = builder.build().getCenter();
+        MarkerOptions options = new MarkerOptions().position(center)
+                .draggable(true)
+                .icon(displayText(getTotalDistance(polylinesList)));
+        distanceMarkers.add(mMap.addMarker(options));
+    }
+
+    @Override
     public void onPolylineClick(Polyline polyline) {
 
         List<LatLng> points = polyline.getPoints();
@@ -522,7 +534,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         LatLng center = LatLngBounds.builder().include(firstPoint).include(secondPoint).build().getCenter();
         MarkerOptions options = new MarkerOptions().position(center)
                 .draggable(true)
-                .icon(createPureTextIcon(getMarkerDistance(polyline)));
+                .icon(displayText(getMarkerDistance(polyline)));
         distanceMarkers.add(mMap.addMarker(options));
     }
 
@@ -555,18 +567,5 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         NumberFormat formatter = new DecimalFormat("#0.0");
 
         return formatter.format(totalDistance) + " KM";
-    }
-
-    @Override
-    public void onPolygonClick(Polygon polygon) {
-        LatLngBounds.Builder builder = LatLngBounds.builder();
-        for(LatLng point: polygon.getPoints()){
-            builder.include(point);
-        }
-        LatLng center = builder.build().getCenter();
-        MarkerOptions options = new MarkerOptions().position(center)
-                .draggable(true)
-                .icon(createPureTextIcon(getTotalDistance(polylinesList)));
-        distanceMarkers.add(mMap.addMarker(options));
     }
 }
