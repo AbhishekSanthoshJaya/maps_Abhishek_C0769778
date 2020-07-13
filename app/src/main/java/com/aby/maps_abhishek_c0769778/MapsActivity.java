@@ -128,8 +128,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             requestLocationPermission();
         } else {
             startUpdateLocations();
-            LatLng canadaCenterLatLong = new LatLng( 43.651070,-79.347015);
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(canadaCenterLatLong, 5));
+            LatLng zoomLocation = new LatLng( 43.651070,-79.347015);
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(zoomLocation, 5));
         }
 
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
@@ -159,6 +159,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             @Override
             public void onMarkerDragEnd(Marker marker) {
+                String cityMarker  = marker.getTag().toString();
+                for(Marker labelMarker : cityMarkers){
+                    if(labelMarker.getTag().toString().equals(cityMarker)){
+                        labelMarker.setPosition(new LatLng(marker.getPosition().latitude - 0.55, marker.getPosition().longitude));
+                    }
+                }
+
+                String[] geoData = getAddressInfo(marker.getPosition());
+                String title = geoData[0];
+                String snippet = geoData[1];
+
+                marker.setTitle(title);
+                marker.setSnippet(snippet);
 
                 if (markersList.size() == POLYGON_SIDES) {
                     for(Polyline line: polylinesList){
@@ -206,19 +219,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }
     }
-
-    private void setMarker(LatLng latLng){
+    private String[] getAddressInfo(LatLng latLng){
 
         Geocoder geoCoder = new Geocoder(this);
         Address address = null;
 
-        try
-        {
+        try {
             List<Address> matches = geoCoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
             address = (matches.isEmpty() ? null : matches.get(0));
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
@@ -228,43 +237,46 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         ArrayList<String> titleString = new ArrayList<>();
         ArrayList<String> snippetString = new ArrayList<>();
 
-        if(address != null){
-            if(address.getSubThoroughfare() != null)
-            {
+        if (address != null) {
+            if (address.getSubThoroughfare() != null) {
                 titleString.add(address.getSubThoroughfare());
 
             }
-            if(address.getThoroughfare() != null)
-            {
+            if (address.getThoroughfare() != null) {
 
                 titleString.add(address.getThoroughfare());
 
             }
-            if(address.getPostalCode() != null)
-            {
+            if (address.getPostalCode() != null) {
 
                 titleString.add(address.getPostalCode());
 
             }
-            if(titleString.isEmpty())
-            {
+            if (titleString.isEmpty()) {
                 titleString.add("Unknown Location");
             }
-            if(address.getLocality() != null)
-            {
+            if (address.getLocality() != null) {
                 snippetString.add(address.getLocality());
 
             }
-            if(address.getAdminArea() != null)
-            {
+            if (address.getAdminArea() != null) {
                 snippetString.add(address.getAdminArea());
             }
         }
         //Building title string using TextUtils
-        title = TextUtils.join(", ",titleString);
+        title = TextUtils.join(", ", titleString);
         title = (title.equals("") ? "  " : title);
 
-        snippet = TextUtils.join(", ",snippetString);
+        snippet = TextUtils.join(", ", snippetString);
+        String[] result = new String[2];
+        result[0] = title;
+        result[1] = snippet;
+        return result;
+    }
+    private void setMarker(LatLng latLng) {
+        String[] geoData = getAddressInfo(latLng);
+        String title = geoData[0];
+        String snippet = geoData[1];
 
         MarkerOptions options = new MarkerOptions().position(latLng)
                 .draggable(true)
@@ -272,9 +284,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker))
                 .snippet(snippet);
 
-        // check if there are already the same number of markers, we clear the map
-        if (markersList.size() == POLYGON_SIDES)
-        {
+        // check if there are already 4 markers
+        if (markersList.size() == POLYGON_SIDES) {
             clearMap();
         }
 
@@ -284,29 +295,35 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (markersList.size() == POLYGON_SIDES) {
             drawShape();
         }
+        addCityLabelMarker(latLng, mm);
+    }
+        private void addCityLabelMarker(LatLng latLng, Marker locationLabel){
+            // Add city Label Marker
+            ArrayList<Character> arr = new ArrayList<>();
+            arr.add('A');
+            arr.add('B');
+            arr.add('C');
+            arr.add('D');
 
-        // Add city Label Marker
-        Character cityLetters = 'A';
-        Character[] arr = {'A','B','C','D'};
-        for(Character letter: arr){
-            if(letterList.contains(letter)){
-                continue;
+            for (Marker marker : cityMarkers) {
+                arr.remove((Character) marker.getTag());
             }
-            cityLetters = letter;
-            break;
+            locationLabel.setTag(arr.get(0).toString());
+
+            LatLng labelLatLng = new LatLng(latLng.latitude - 0.55, latLng.longitude);
+
+            //Adding label to the marker
+            MarkerOptions optionsCityLabel = new MarkerOptions().position(labelLatLng)
+                    .draggable(false)
+                    .icon(displayText(arr.get(0).toString()));
+            Marker letterMarker = mMap.addMarker(optionsCityLabel);
+
+            cityMarkers.add(letterMarker);
+            letterList.add(arr.get(0));
+            letterMarker.setTag(arr.get(0));
+            //markerLabelMap.put(letterMarker.getPosition(),cityLetters);
         }
 
-        LatLng labelLatLng = new LatLng(latLng.latitude - 0.55,latLng.longitude);
-        MarkerOptions optionsCityLabel = new MarkerOptions().position(labelLatLng)
-                .draggable(false)
-                .icon(displayText(cityLetters.toString()))
-                .snippet(snippet);
-        Marker letterMarker = mMap.addMarker(optionsCityLabel);
-
-        cityMarkers.add(letterMarker);
-        letterList.add(cityLetters);
-        markerLabelMap.put(letterMarker.getPosition(),cityLetters);
-    }
     //drawing polygon with 4 markers
     private void drawShape (){
         PolygonOptions options = new PolygonOptions()
@@ -363,7 +380,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         shape = mMap.addPolygon(options);
         shape.setClickable(true);
 
-        // draw the polyline too
+        // draw polyline
         LatLng[] polyLinePoints = new LatLng[sortedLatLong.size() + 1];
         int index = 0;
         for (LatLng x : sortedLatLong) {
@@ -371,12 +388,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             index++;
             if (index == sortedLatLong.size()) {
-                // at last add initial point
+                // adding initial point
                 polyLinePoints[index] = sortedLatLong.elementAt(0);
             }
         }
         for(int i =0 ; i<polyLinePoints.length -1 ; i++){
-
             LatLng[] tempArr = {polyLinePoints[i], polyLinePoints[i+1] };
             Polyline currentPolyline =  mMap.addPolyline(new PolylineOptions()
                     .clickable(true)
@@ -421,7 +437,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             return;
         }
         double minDistance = Double.MAX_VALUE;
+        double minCityLabelDistance = Double.MAX_VALUE;
+
         Marker nearestMarker = null;
+        Marker nearestCityMarker = null;
 
         for(Marker marker: markersList){
             double currDistance = distance(marker.getPosition().latitude,
@@ -434,28 +453,37 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }
 
-        if(nearestMarker != null){
+        //  nearest city markers
+        for(Marker marker: cityMarkers){
+            double currDistance = distance(marker.getPosition().latitude,
+                    marker.getPosition().longitude,
+                    latLng.latitude,
+                    latLng.longitude);
+            if(currDistance < minCityLabelDistance){
+                minCityLabelDistance = currDistance;
+                nearestCityMarker = marker;
+            }
+        }
+
+        if(nearestMarker != null && nearestCityMarker != null){
             nearestMarker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.marker_selected));
             final Marker finalNearestMarker = nearestMarker;
             AlertDialog.Builder deleteDialog = new AlertDialog.Builder(this);
 
+            final Marker finalNearestCityMarker = nearestCityMarker;
+            //Dialog asking confirmation of deleting
             deleteDialog
                     .setTitle("Delete?")
                     .setMessage("Would you like to delete the marker in red?")
 
-                    // Specifying a listener allows you to take an action before dismissing the dialog.
-                    // The dialog is automatically dismissed when a dialog button is clicked.
                     .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
-                            // Continue with delete operation
+                            // Performing with delete operation
                             finalNearestMarker.remove();
                             markersList.remove(finalNearestMarker);
 
-                            letterList.remove(markerLabelMap.get(finalNearestMarker.getPosition()));
-                            letterList.clear();
-                            cityMarkers.clear();
-                            markerLabelMap.remove(finalNearestMarker);
-                            markerLabelMap.clear();
+                            finalNearestCityMarker.remove();
+                            cityMarkers.remove(finalNearestCityMarker);
 
                             for(Polyline polyline: polylinesList){
                                 polyline.remove();
@@ -474,6 +502,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                         }
                     })
+                    //Setting marker back to original if negative confirmation
                     .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             finalNearestMarker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.marker));
@@ -488,7 +517,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapClick(LatLng latLng) {
         setMarker(latLng);
-
     }
 
     private double distance(double lat1, double lon1, double lat2, double lon2) {
@@ -559,14 +587,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             LatLng firstPoint = points.remove(0);
             LatLng secondPoint = points.remove(0);
 
-
             double distance = distance(firstPoint.latitude,firstPoint.longitude,
                     secondPoint.latitude,secondPoint.longitude);
             totalDistance += distance;
 
         }
         NumberFormat formatter = new DecimalFormat("#0.0");
-
         return formatter.format(totalDistance) + " KM";
     }
 }
