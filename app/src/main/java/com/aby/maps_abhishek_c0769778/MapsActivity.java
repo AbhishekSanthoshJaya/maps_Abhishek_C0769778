@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
@@ -53,6 +54,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     List<Marker> markersList = new ArrayList<>();
     List<Marker> distanceMarkers = new ArrayList<>();
     ArrayList<Polyline> polylinesList = new ArrayList<>();
+
+    List<Marker> cityMarkers = new ArrayList<>();
+    ArrayList<Character> letterList = new ArrayList<>();
+    HashMap<LatLng, Character> markerLabelMap = new HashMap<>();
+
     LocationManager locationManager;
     LocationListener locationListener;
     private GoogleMap mMap;
@@ -277,11 +283,33 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (markersList.size() == POLYGON_SIDES) {
             drawShape();
         }
+
+        // Add city Label Marker
+        Character cityLetters = 'A';
+        Character[] arr = {'A','B','C','D'};
+        for(Character letter: arr){
+            if(letterList.contains(letter)){
+                continue;
+            }
+            cityLetters = letter;
+            break;
+        }
+
+        LatLng labelLatLng = new LatLng(latLng.latitude - 0.55,latLng.longitude);
+        MarkerOptions optionsCityLabel = new MarkerOptions().position(labelLatLng)
+                .draggable(false)
+                .icon(createPureTextIcon(cityLetters.toString()))
+                .snippet(snippet);
+        Marker labelMarker = mMap.addMarker(optionsCityLabel);
+
+        cityMarkers.add(labelMarker);
+        letterList.add(cityLetters);
+        markerLabelMap.put(labelMarker.getPosition(),cityLetters);
     }
 
     private void drawShape (){
         PolygonOptions options = new PolygonOptions()
-                .fillColor(Color.argb(75, 0, 255, 0))
+                .fillColor(Color.argb(35, 0, 255, 0))
                 .strokeWidth(0);
 
         LatLng[] markersConvex = new LatLng[POLYGON_SIDES];
@@ -289,7 +317,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             markersConvex[i] = new LatLng(markersList.get(i).getPosition().latitude,
                     markersList.get(i).getPosition().longitude);
         }
-
 
         Vector<LatLng> sortedLatLong = PointPlotter.convexHull(markersConvex, POLYGON_SIDES);
 
@@ -312,7 +339,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if(sortedLatLong2.contains(marker.getPosition())){
                     continue;
                 }
-
 
                 double curDistance = distance(currentMarker.getPosition().latitude,
                         currentMarker.getPosition().longitude,
