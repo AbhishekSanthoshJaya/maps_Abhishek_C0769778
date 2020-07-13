@@ -69,7 +69,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_maps);
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
+        .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
     }
 
@@ -78,7 +78,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Paint textPaint = new Paint();
 
         textPaint.setTextSize(48);
-        textPaint.setColor(Color.argb(100, 0, 0, 0));
         float textWidth = textPaint.measureText(text);
         float textHeight = textPaint.getTextSize();
         int width = (int) (textWidth);
@@ -225,7 +224,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         String title = "";
         String snippet = "";
-
+        //Getting title and snippet
         ArrayList<String> titleString = new ArrayList<>();
         ArrayList<String> snippetString = new ArrayList<>();
 
@@ -260,9 +259,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             {
                 snippetString.add(address.getAdminArea());
             }
-
         }
-
+        //Building title string using TextUtils
         title = TextUtils.join(", ",titleString);
         title = (title.equals("") ? "  " : title);
 
@@ -309,7 +307,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         letterList.add(cityLetters);
         markerLabelMap.put(letterMarker.getPosition(),cityLetters);
     }
-
+    //drawing polygon with 4 markers
     private void drawShape (){
         PolygonOptions options = new PolygonOptions()
                 .fillColor(Color.argb(35, 0, 255, 0))
@@ -326,15 +324,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // get sortedLatLong
         Vector<LatLng> sortedLatLong2 =  new Vector<>();
 
-        // leftmost marker
+        // leftmost marker for convex hull formula
         int l = 0;
         for (int i = 0; i < markersList.size(); i++)
             if (markersList.get(i).getPosition().latitude < markersList.get(l).getPosition().latitude)
                 l = i;
-
+        //using counter clockwise rotation
         Marker currentMarker = markersList.get(l);
         sortedLatLong2.add(currentMarker.getPosition());
-        System.out.println(currentMarker.getPosition());
         while(sortedLatLong2.size() != POLYGON_SIDES){
             double minDistance = Double.MAX_VALUE;
             Marker nearestMarker  = null;
@@ -378,7 +375,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 polyLinePoints[index] = sortedLatLong.elementAt(0);
             }
         }
-
         for(int i =0 ; i<polyLinePoints.length -1 ; i++){
 
             LatLng[] tempArr = {polyLinePoints[i], polyLinePoints[i+1] };
@@ -414,6 +410,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             marker.remove();
         }
         cityMarkers.clear();
+        letterList.clear();
+
     }
 
     @Override
@@ -454,7 +452,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             markersList.remove(finalNearestMarker);
 
                             letterList.remove(markerLabelMap.get(finalNearestMarker.getPosition()));
+                            letterList.clear();
+                            cityMarkers.clear();
                             markerLabelMap.remove(finalNearestMarker);
+                            markerLabelMap.clear();
 
                             for(Polyline polyline: polylinesList){
                                 polyline.remove();
