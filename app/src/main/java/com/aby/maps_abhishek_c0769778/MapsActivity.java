@@ -118,7 +118,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         };
 
-
         if (!hasLocationPermission()) {
             requestLocationPermission();
         } else {
@@ -127,19 +126,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(canadaCenterLatLong, 5));
         }
 
-//        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-//            @Override
-//            public boolean onMarkerClick(Marker marker) {
-//                System.out.println("marker Clicked"+marker.isInfoWindowShown());
-//                if(marker.isInfoWindowShown()){
-//                    marker.hideInfoWindow();
-//                }
-//                else{
-//                    marker.showInfoWindow();
-//                }
-//                return true;
-//            }
-//        });
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                System.out.println("marker Clicked"+marker.isInfoWindowShown());
+                if(marker.isInfoWindowShown()){
+                    marker.hideInfoWindow();
+                }
+                else{
+                    marker.showInfoWindow();
+                }
+                return true;
+            }
+        });
 
         mMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
             @Override
@@ -192,7 +191,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
 
@@ -240,10 +238,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 titleString.add(address.getPostalCode());
 
             }
-//            if(titleString.isEmpty())
-//            {
-//                titleString.add("Unknown Location");
-//            }
+            if(titleString.isEmpty())
+            {
+                titleString.add("Unknown Location");
+            }
             if(address.getLocality() != null)
             {
                 snippetString.add(address.getLocality());
@@ -456,7 +454,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onMapClick(LatLng latLng) {
-        System.out.println("long press");
         setMarker(latLng);
 
     }
